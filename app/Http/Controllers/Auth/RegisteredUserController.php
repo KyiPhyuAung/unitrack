@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+use App\Models\University;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Illuminate\View\View;
+
+class RegisteredUserController extends Controller
+{
+    /**
+     * Display the registration view.
+     */
+    public function create(): View
+{
+    return view('auth.register', [
+        'universities' => University::where('is_active', true)->orderBy('name')->get(),
+    ]);
+}
+
+
+    /**
+     * Handle an incoming registration request.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed'],
+            'university_id' => ['required', 'exists:universities,id'],
+        ]);
+
+        $user = \App\Models\User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'university_id' => $request->university_id,
+        ]);
+
+        \Illuminate\Support\Facades\Auth::login($user);
+
+        return redirect()->route('dashboard');
+    }
+}
