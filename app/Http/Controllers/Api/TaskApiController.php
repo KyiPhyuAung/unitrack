@@ -10,7 +10,10 @@ class TaskApiController extends Controller
 {
     public function index(Request $request)
     {
-        return Task::where('user_id', $request->user()->id)
+        $user = $request->user();
+        abort_if(!$user, 401);
+
+        return Task::where('user_id', $user->id)
             ->orderBy('task_date')
             ->orderBy('task_time')
             ->get();
@@ -19,9 +22,11 @@ class TaskApiController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
+        abort_if(!$user, 401);
 
-        // Standard user: max 2 tasks
-        if ($user->role === 'standard' && Task::where('user_id', $user->id)->count() >= 2) {
+        $role = $user->role ?? 'standard';
+
+        if ($role === 'standard' && \App\Models\Task::where('user_id', $user->id)->count() >= 2) {
             return response()->json([
                 'message' => 'Task limit reached. Upgrade to Premium to add more tasks.'
             ], 403);
@@ -31,10 +36,10 @@ class TaskApiController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'task_date' => ['required', 'date'],
-            'task_time' => ['nullable'],
+            'task_time' => ['nullable', 'date_format:H:i'],
             'priority_color' => ['required', 'string'],
-            'status' => ['required', 'string'],
-            'notify_at' => ['nullable'],
+            'status' => ['required', 'in:pending,ongoing,done'],
+            'notify_at' => ['nullable', 'date'],
         ]);
 
         $data['user_id'] = $user->id;
@@ -45,28 +50,31 @@ class TaskApiController extends Controller
     }
 
     public function update(Request $request, Task $task)
-{
-    abort_if($task->user_id !== $request->user()->id, 403);
+    {
+        $user = $request->user();
+        abort_if(!$user, 401);
+        abort_if($task->user_id !== $user->id, 403);
 
-    $data = $request->validate([
-        'title' => ['sometimes', 'required', 'string', 'max:255'],
-        'description' => ['nullable', 'string'],
-        'task_date' => ['sometimes', 'required', 'date'],
-        'task_time' => ['nullable'],
-        'priority_color' => ['sometimes', 'required', 'string'],
-        'status' => ['sometimes', 'required', 'string'],
-        'notify_at' => ['nullable'],
-    ]);
+        $data = $request->validate([
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'task_date' => ['sometimes', 'required', 'date'],
+            'task_time' => ['nullable', 'date_format:H:i'],
+            'priority_color' => ['sometimes', 'required', 'string'],
+            'status' => ['sometimes', 'required', 'in:pending,ongoing,done'],
+            'notify_at' => ['nullable', 'date'],
+        ]);
 
-    $task->update($data);
+        $task->update($data);
 
-    return response()->json($task);
-}
-
+        return response()->json($task);
+    }
 
     public function destroy(Request $request, Task $task)
     {
-        abort_if($task->user_id !== $request->user()->id, 403);
+        $user = $request->user();
+        abort_if(!$user, 401);
+        abort_if($task->user_id !== $user->id, 403);
 
         $task->delete();
 

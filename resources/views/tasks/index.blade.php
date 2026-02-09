@@ -6,6 +6,10 @@
     @media (min-width: 768px) { .task-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (min-width: 1200px) { .task-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
+    .task-card.expired {
+        box-shadow: 0 0 0 2px rgba(220,53,69,.25), 0 12px 30px rgba(0,0,0,.08);
+    }
+
     .task-card {
         border: 0;
         border-radius: 18px;
@@ -133,6 +137,23 @@
         return map[color] ?? '🔵';
     }
 
+    function toLocalDueDate(task) {
+    // If no time, assume end of day
+        const time = task.task_time ? String(task.task_time).slice(0, 5) : '23:59';
+        return new Date(`${task.task_date}T${time}`);
+    }
+
+    function isExpired(task) {
+        if (task.status === 'done') return false; // ✅ never expire done tasks
+        const due = toLocalDueDate(task);
+        return due < new Date();
+    }
+
+    function expiredBadge(task) {
+        if (!isExpired(task)) return '';
+        return `<span class="badge text-bg-danger pill ms-2">⛔ Expired</span>`;
+    }
+
     function statusBadge(status) {
         const map = { pending:'secondary', ongoing:'info', done:'success' };
         const klass = map[status] ?? 'secondary';
@@ -169,7 +190,7 @@
         empty.classList.add('d-none');
 
         grid.innerHTML = tasks.map((t, i) => `
-            <div class="task-card" data-task-id="${t.id}" style="animation-delay:${i*70}ms">
+            <div class="task-card ${isExpired(t) ? 'expired' : ''}" data-task-id="${t.id}" style="animation-delay:${i*70}ms">
                 <div class="priority-bar ${priorityBarClass(t.priority_color)}"></div>
 
                 <div class="p-3">
@@ -180,8 +201,9 @@
                             </div>
                             ${t.description ? `<div class="muted-mini mt-1">${escapeHtml(t.description)}</div>` : ''}
                         </div>
-                        <div id="statusBadge-${t.id}">
-                            ${statusBadge(t.status)}
+                        <div id="statusBadge-${t.id}" class="d-flex align-items-center gap-1">
+                             ${statusBadge(t.status)}
+                            ${expiredBadge(t)}
                         </div>
                     </div>
 

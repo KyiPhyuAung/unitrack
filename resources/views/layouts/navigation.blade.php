@@ -15,6 +15,26 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @auth
+                    @if(Auth::user()->role === 'admin')
+                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
+                            {{ __('Admin Panel') }}
+                        </x-nav-link>
+                    @endif
+                @endauth
+
+                @if(Auth::user()->role !== 'admin')
+                    <x-nav-link :href="route('payments.upgrade')">
+                        Upgrade 💎
+                    </x-nav-link>
+                @endif
+
+                    @if(auth()->user()->role === 'admin')
+                        <x-nav-link :href="route('admin.payments.index')" :active="request()->routeIs('admin.payments.*')">
+                            💳 Payments
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -71,6 +91,12 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
         </div>
+
+        @if(auth()->user()->role === 'admin')
+            <x-responsive-nav-link :href="route('admin.payments.index')" :active="request()->routeIs('admin.payments.*')">
+                💳 Payments
+            </x-responsive-nav-link>
+        @endif
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
