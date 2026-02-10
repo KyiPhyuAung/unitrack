@@ -94,6 +94,8 @@ Route::middleware('auth')->prefix('api')->group(function () {
     Route::post('/tasks', [TaskApiController::class, 'store']);
     Route::patch('/tasks/{task}', [TaskApiController::class, 'update']);
     Route::delete('/tasks/{task}', [TaskApiController::class, 'destroy']);
+    Route::get('/notifications', [\App\Http\Controllers\Api\NotificationApiController::class, 'index']);
+    Route::get('/tasks/preview', [\App\Http\Controllers\Api\NotificationApiController::class, 'preview']);
 });
 
 
