@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        :root { --glass: rgba(255,255,255,.74); }
+        :root { --glass: rgba(255,255,255,.72); }
         body { font-family: "Instrument Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
 
         /* Background */
@@ -50,11 +50,12 @@
             50% { transform: translateY(28px) translateX(18px) scale(1.05); }
         }
 
-        .glass {
+        .glass{
             background: var(--glass);
-            border: 1px solid rgba(255,255,255,.58);
-            box-shadow: 0 22px 70px rgba(15, 23, 42, .10);
-            backdrop-filter: blur(14px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,.6);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, .08);
         }
 
         .btn-glow { position: relative; border: 0; }
@@ -71,16 +72,28 @@
         }
         .btn-glow:hover:before { opacity: .85; }
 
-        .navlink { position: relative; }
-        .navlink:after {
-            content:"";
-            position:absolute; left:0; bottom:-8px;
-            width:0; height:2px;
-            background: linear-gradient(90deg, #3b82f6, #a855f7, #22c55e);
-            transition: width .25s ease;
+        .navlink{
+            position: relative;
+            padding: .35rem .25rem;
+            transition: transform .15s ease, opacity .15s ease;
         }
-        .navlink:hover:after { width: 100%; }
+        .navlink::after{
+            content:"";
+            position:absolute;
+            left:0;
+            right:0;
+            bottom:-.15rem;
+            height:2px;
+            border-radius: 999px;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .2s ease;
+            background: rgba(15,23,42,.8);
+        }
 
+        .navlink:hover{ transform: translateY(-1px); opacity: .95; }
+
+        .navlink:hover::after{ transform: scaleX(1); }
         .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(2,6,23,.12), transparent); }
 
         .pill {
@@ -157,20 +170,22 @@
     <div class="noise"></div>
 
     <!-- Navbar -->
-    <header class="sticky top-0 z-50">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
-            <nav class="glass rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between">
+    <header class="sticky top-3 z-50">
+        <div class="max-w-6xl mx-auto px-4">
+            <nav class="glass rounded-2xl px-4 sm:px-6 py-3">
+            <div class="flex items-center justify-between">
 
                 <!-- Logo -->
-                <a href="{{ route('home') }}" class="flex items-center gap-3">
-                    <div class="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
-                        <x-application-logo class="block h-6 w-auto fill-current text-white" />
-                    </div>
+                <a href="{{ route('home') }}" class="group flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm
+                            transition transform group-hover:scale-[1.03] group-hover:-rotate-1">
+                    <x-application-logo class="h-6 w-6 text-white" />
+                </div>
 
-                    <div class="leading-tight">
-                        <div class="font-bold">UniTrack</div>
-                        <div class="text-xs text-slate-500 -mt-0.5">Plan • Prioritize • Finish</div>
-                    </div>
+                <div class="leading-tight">
+                    <div class="font-extrabold tracking-tight">UniTrack</div>
+                    <div class="text-xs text-slate-500 -mt-0.5">Plan • Prioritize • Finish</div>
+                </div>
                 </a>
 
                 <!-- Desktop Links -->
@@ -180,52 +195,76 @@
                     <a href="#pricing" class="navlink">Premium 💎</a>
                     <a href="#testimonials" class="navlink">Reviews 💬</a>
                     <a href="#faq" class="navlink">FAQ ❓</a>
+
+                    @auth
+                        <a href="{{ route('feedback.create') }}" class="navlink">Give feedback ⭐</a>
+                    @else
+                        <a href="#testimonials" class="navlink">Give feedback ⭐</a>
+                    @endauth
                 </div>
 
                 <!-- Auth Buttons -->
                 <div class="hidden sm:flex items-center gap-2">
-                    @auth
-                        <a href="{{ route('dashboard') }}"
-                        class="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:opacity-95 transition">
-                            Dashboard 🚀
-                        </a>
-                    @else
-                        <a href="{{ route('login') }}"
-                        class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-white/60 transition">
-                            Log in 🔐
-                        </a>
+                @auth
+                    <a href="{{ route('dashboard') }}"
+                    class="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:opacity-95 transition">
+                    Dashboard 🚀
+                    </a>
+                @else
+                    <a href="{{ route('login') }}"
+                    class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-white/60 transition">
+                    Log in 🔐
+                    </a>
 
-                        <a href="{{ route('register') }}"
-                        class="btn-glow ripple-btn px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:opacity-95 transition">
-                            Start free ✨
-                        </a>
-                    @endauth
+                    <a href="{{ route('register') }}"
+                    class="btn-glow ripple-btn px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:opacity-95 transition">
+                    Start free ✨
+                    </a>
+                @endauth
                 </div>
 
-                <!-- Mobile Menu -->
+                <!-- Mobile Button -->
                 <button id="menuBtn"
-                    class="sm:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl bg-white/60 hover:bg-white transition border border-white/60">
-                    ☰
+                class="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl bg-white/60 hover:bg-white transition border border-white/60"
+                aria-expanded="false" aria-controls="mobileMenu">
+                ☰
                 </button>
+            </div>
 
-            </nav>
-
-            <div id="mobileMenu" class="hidden mt-3 glass rounded-2xl p-4 sm:hidden">
-                <div class="grid gap-3 text-sm text-slate-700">
-                    <a href="#features" class="hover:underline">Features ✨</a>
-                    <a href="#how" class="hover:underline">How it works 🧠</a>
-                    <a href="#pricing" class="hover:underline">Premium 💎</a>
-                    <a href="#testimonials" class="hover:underline">Reviews 💬</a>
-                    <a href="#faq" class="hover:underline">FAQ ❓</a>
-                    <div class="divider my-2"></div>
+            <!-- Mobile Dropdown -->
+            <div id="mobileMenu" class="md:hidden hidden pt-3">
+                <div class="rounded-2xl bg-white/60 border border-white/60 p-3 space-y-2">
+                <a href="#features" class="block px-3 py-2 rounded-xl hover:bg-white/70 transition">Features ✨</a>
+                <a href="#how" class="block px-3 py-2 rounded-xl hover:bg-white/70 transition">How it works 🧠</a>
+                <a href="#pricing" class="block px-3 py-2 rounded-xl hover:bg-white/70 transition">Premium 💎</a>
+                <a href="#testimonials" class="block px-3 py-2 rounded-xl hover:bg-white/70 transition">Reviews 💬</a>
+                <a href="#faq" class="block px-3 py-2 rounded-xl hover:bg-white/70 transition">FAQ ❓</a>
+                @auth
+                <a href="{{ route('feedback.create') }}" class="block px-3 py-2 rounded-xl hover:bg-white/70 transition">Give feedback ⭐</a>
+                @else
+                <a href="#testimonials" class="block px-3 py-2 rounded-xl hover:bg-white/70 transition">Give feedback ⭐</a>
+                @endauth
+                <div class="pt-2 border-t border-white/60 flex gap-2">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold text-center">Dashboard 🚀</a>
+                    <a href="{{ route('dashboard') }}"
+                        class="w-full text-center px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:opacity-95 transition">
+                        Dashboard 🚀
+                    </a>
                     @else
-                        <a href="{{ route('login') }}" class="px-4 py-2 rounded-xl bg-white/70 border border-white/60 font-semibold text-center">Log in 🔐</a>
-                        <a href="{{ route('register') }}" class="btn-glow ripple-btn px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold text-center">Start free ✨</a>
+                    <a href="{{ route('login') }}"
+                        class="w-1/2 text-center px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-white/70 transition">
+                        Log in 🔐
+                    </a>
+                    <a href="{{ route('register') }}"
+                        class="w-1/2 text-center px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:opacity-95 transition">
+                        Start free ✨
+                    </a>
                     @endauth
+                </div>
                 </div>
             </div>
+
+            </nav>
         </div>
     </header>
 
@@ -517,7 +556,33 @@
                 </div>
                 <span class="pill text-sm">So why don't you join? 🤓</span>
             </div>
+            @if(isset($feedbacks) && $feedbacks->count())
+            <div class="mt-6 grid md:grid-cols-3 gap-4">
+                @foreach($feedbacks as $f)
+                <div class="glass rounded-3xl p-5">
+                    <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <div class="font-bold">{{ $f->display_name ?? 'User' }}</div>
+                        <div class="text-xs text-slate-500 mt-1">{{ $f->created_at->diffForHumans() }}</div>
+                    </div>
+                    <div class="text-2xl">{{ $f->emoji }}</div>
+                    </div>
 
+                    <div class="mt-3 text-slate-700 leading-relaxed">
+                    “{{ $f->message }}”
+                    </div>
+
+                    <div class="mt-3 text-sm">
+                    @for($i=1;$i<=5;$i++)
+                        <span class="{{ $i <= (int)$f->rating ? '' : 'opacity-25' }}">⭐</span>
+                    @endfor
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            <div class="divider my-10"></div>
+            @endif
             <div class="mt-8 glass rounded-3xl p-4 overflow-hidden">
                 <div class="marquee">
                     <div class="marquee-track">
@@ -634,5 +699,25 @@
 
         document.querySelectorAll('.reveal').forEach(el => io.observe(el));
     </script>
+    <!-- <script>
+        const btn1 = document.getElementById('menuBtn');
+        const menu1 = document.getElementById('mobileMenu');
+
+        if (btn1 && menu1) {
+            btn1.addEventListener('click', () => {
+            const isOpen = !menu1.classList.contains('hidden');
+            menu1.classList.toggle('hidden');
+            btn.setAttribute('aria-expanded', String(!isOpen));
+            });
+
+            // close on link click (nice UX)
+            menu1.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', () => {
+                menu1.classList.add('hidden');
+                btn1.setAttribute('aria-expanded', 'false');
+            });
+            });
+        }
+    </script> -->
 </body>
 </html>

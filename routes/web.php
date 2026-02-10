@@ -11,7 +11,21 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminPaymentController;
 use App\Http\Controllers\Admin\AdminReportController;
 
-Route::view('/', 'welcome')->name('home');
+use App\Http\Controllers\FeedbackController;
+
+use App\Models\Feedback;
+
+
+
+Route::get('/', function () {
+    $feedbacks = Feedback::where('is_public', true)->latest()->take(12)->get();
+    return view('welcome', compact('feedbacks'));
+})->name('home');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
+    Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+});
 
 Route::view('/about', 'site.about');
 Route::view('/features', 'site.features');
@@ -81,5 +95,9 @@ Route::middleware('auth')->prefix('api')->group(function () {
     Route::patch('/tasks/{task}', [TaskApiController::class, 'update']);
     Route::delete('/tasks/{task}', [TaskApiController::class, 'destroy']);
 });
+
+
+
+
 
 require __DIR__ . '/auth.php';
