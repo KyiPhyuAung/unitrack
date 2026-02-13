@@ -8,7 +8,7 @@ class Feedback extends Model
 {
     
     protected $fillable = [
-    'user_id','display_name','emoji','rating','message','is_public'
+    'user_id','display_name','role_tag','emoji','rating','message','is_public'
 ];
 
     public function user()

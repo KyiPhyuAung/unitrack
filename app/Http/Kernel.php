@@ -1,0 +1,1 @@
+'not_admin' => \App\Http\Middleware\NotAdmin::class,

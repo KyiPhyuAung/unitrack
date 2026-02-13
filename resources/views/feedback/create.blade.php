@@ -25,6 +25,20 @@
                 @error('display_name') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
+            @php
+                $roles = ['Engineer','Designer','CS Student','Business','IT','Medical','Other'];
+                @endphp
+
+                <div>
+                <label class="text-sm font-semibold text-slate-700">Role</label>
+                <select name="role_tag" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 bg-white/70">
+                    @foreach($roles as $r)
+                    <option value="{{ $r }}" {{ old('role_tag')===$r ? 'selected' : '' }}>{{ $r }}</option>
+                    @endforeach
+                </select>
+                @error('role_tag') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+
             <div>
                 <label class="text-sm font-semibold text-slate-700">Mood</label>
                 <div class="mt-2 flex flex-wrap gap-2">

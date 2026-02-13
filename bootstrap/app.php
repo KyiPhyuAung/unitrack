@@ -12,13 +12,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
  
-
-    ->withMiddleware(function (Middleware $middleware) {
-        $middleware->alias([
-            'admin' => AdminOnly::class,
-        ]);
-    })
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->alias([
+        'admin'     => \App\Http\Middleware\AdminOnly::class,
+        'not_admin' => \App\Http\Middleware\NotAdmin::class,
+    ]);
+})
 
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+
+//     $middleware->alias([
+//     'not_admin' => \App\Http\Middleware\NotAdmin::class,
+// ]);

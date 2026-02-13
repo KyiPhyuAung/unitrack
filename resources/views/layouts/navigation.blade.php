@@ -41,6 +41,9 @@
                                 </span>
                             </span>
                         @endif
+                        <x-nav-link :href="route('feedback.create')" :active="request()->routeIs('feedback.*')">
+                            Feedback ⭐
+                        </x-nav-link>
                     @endif
 
                     {{-- ADMIN --}}
@@ -55,6 +58,13 @@
 
                         <x-nav-link :href="route('admin.reports')" :active="request()->routeIs('admin.reports')">
                             📊 Reports
+                        </x-nav-link>
+                        <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                        👤 User Control
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('admin.feedback.index')" :active="request()->routeIs('admin.feedback.*')">
+                        ⭐ Feedback
                         </x-nav-link>
                     @endif
                 </div>

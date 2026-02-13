@@ -1,3 +1,4 @@
+@extends('layouts.admin')
 @extends('layouts.app-bootstrap')
 
 @section('content')

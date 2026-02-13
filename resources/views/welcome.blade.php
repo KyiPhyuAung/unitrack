@@ -556,13 +556,20 @@
                 </div>
                 <span class="pill text-sm">So why don't you join? 🤓</span>
             </div>
-            @if(isset($feedbacks) && $feedbacks->count())
+            @php
+    $approvedFeedbacks = collect($feedbacks ?? [])->filter(fn($f) => (bool)($f->is_public ?? false));
+@endphp
+
+@if($approvedFeedbacks->count())
             <div class="mt-6 grid md:grid-cols-3 gap-4">
-                @foreach($feedbacks as $f)
+                @foreach($approvedFeedbacks as $f)
                 <div class="glass rounded-3xl p-5">
                     <div class="flex items-start justify-between gap-3">
                     <div>
                         <div class="font-bold">{{ $f->display_name ?? 'User' }}</div>
+                        @if(!empty($f->role_tag))
+                          <div class="text-xs mt-1"><span class="pill text-xs">{{ $f->role_tag }}</span></div>
+                        @endif
                         <div class="text-xs text-slate-500 mt-1">{{ $f->created_at->diffForHumans() }}</div>
                     </div>
                     <div class="text-2xl">{{ $f->emoji }}</div>
@@ -587,6 +594,16 @@
                 <div class="marquee">
                     <div class="marquee-track">
                         @php
+                            $realReviews = collect($approvedFeedbacks)->map(function($f){
+                                return [
+                                    'name' => ($f->display_name ?? 'User') . ' ' . ($f->emoji ?? '💬'),
+                                    'text' => $f->message,
+                                    'tag'  => $f->role_tag ?? 'User',
+                                    'rating' => (int)($f->rating ?? 5),
+                                ];
+                            })->toArray();
+                        @endphp
+                        @php
                             $reviews = [
                                 ['name'=>'Aye Chan 🎓', 'text'=>'I stopped missing deadlines. The reminder emails are 🔥', 'tag'=>'Final Year'],
                                 ['name'=>'Hnin Pwint 📚', 'text'=>'The UI feels like Notion but simpler 😍', 'tag'=>'CS Student'],
@@ -595,17 +612,24 @@
                                 ['name'=>'Thura ⏱️', 'text'=>'Auto refresh on status change is sooo satisfying ✨', 'tag'=>'IT'],
                                 ['name'=>'Su Mon 💎', 'text'=>'Premium is worth it — unlimited tasks and clean UI 😌', 'tag'=>'Design'],
                             ];
+                            $allReviews = array_merge($realReviews, $reviews);
                         @endphp
 
                         @foreach([1,2] as $dup)
-                            @foreach($reviews as $r)
+                            @foreach($allReviews as $r)
                                 <div class="review-card">
-                                    <div class="flex items-center justify-between">
-                                        <div class="font-bold">{{ $r['name'] }}</div>
-                                        <span class="pill text-xs">{{ $r['tag'] }}</span>
-                                    </div>
-                                    <div class="text-slate-700 mt-2 leading-relaxed">“{{ $r['text'] }}”</div>
-                                    <div class="mt-3 text-xs text-slate-500">⭐⭐⭐⭐⭐</div>
+                                <div class="flex items-center justify-between">
+                                    <div class="font-bold">{{ $r['name'] }}</div>
+                                    <span class="pill text-xs">{{ $r['tag'] }}</span>
+                                </div>
+
+                                <div class="text-slate-700 mt-2 leading-relaxed">“{{ $r['text'] }}”</div>
+
+                                <div class="mt-3 text-xs text-slate-500">
+                                    @for($i=1;$i<=5;$i++)
+                                    <span class="{{ $i <= ($r['rating'] ?? 5) ? '' : 'opacity-25' }}">⭐</span>
+                                    @endfor
+                                </div>
                                 </div>
                             @endforeach
                         @endforeach

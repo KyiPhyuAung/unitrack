@@ -19,8 +19,9 @@ class FeedbackController extends Controller
 
         $data = $request->validate([
             'display_name' => ['nullable','string','max:50'],
+            'role_tag'     => ['nullable','string','max:30'],
             'emoji'        => ['required','string','max:8'],
-            'rating'       => ['required','integer','min:1','max:5'], // ⭐ NEW
+            'rating'       => ['required','integer','min:1','max:5'],
             'message'      => ['required','string','min:3','max:1000'],
         ]);
 
@@ -28,15 +29,15 @@ class FeedbackController extends Controller
             return back()->withErrors(['emoji' => 'Invalid emoji selected.'])->withInput();
         }
 
-        \App\Models\Feedback::create([
+        Feedback::create([
             'user_id' => $request->user()->id,
             'display_name' => $data['display_name'] ?: $request->user()->name,
+            'role_tag' => $data['role_tag'] ?? null,
             'emoji' => $data['emoji'],
-            'rating' => (int) $data['rating'],
+            'rating' => (int)$data['rating'],
             'message' => $data['message'],
-            'is_public' => true,
+            'is_public' => false, // ✅ admin must approve
         ]);
-
-        return redirect()->route('feedback.create')->with('success', 'Thanks! Your feedback was sent 🎉');
+        return redirect()->route('feedback.create')->with('success', 'Thanks! Sent to admin for approval ✅');
     }
 }

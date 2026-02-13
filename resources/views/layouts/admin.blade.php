@@ -74,7 +74,8 @@
     <!-- Sidebar -->
     <aside id="sidebar" class="w-[280px] hidden lg:block p-4">
         <div class="glass rounded-3xl p-4 h-[calc(100vh-2rem)] sticky top-4 overflow-hidden">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
+            {{-- ✅ Admin logo should go to admin dashboard, NOT user dashboard --}}
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
                 <div class="h-11 w-11 rounded-2xl bg-slate-900 text-white flex items-center justify-center">✅</div>
                 <div class="leading-tight">
                     <div class="font-extrabold">{{ config('app.name','UniTrack') }}</div>
@@ -85,17 +86,24 @@
             <div class="divider my-4"></div>
 
             <nav class="space-y-2 text-sm">
-                <a class="block px-3 py-2 rounded-2xl hover:bg-white/60 transition {{ request()->is('admin') ? 'bg-white/70' : '' }}"
-                   href="{{ url('/admin') }}">🏠 Admin Dashboard</a>
+                <a class="block px-3 py-2 rounded-2xl hover:bg-white/60 transition {{ request()->routeIs('admin.dashboard') ? 'bg-white/70' : '' }}"
+                   href="{{ route('admin.dashboard') }}">🏠 Admin Dashboard</a>
 
-                <a class="block px-3 py-2 rounded-2xl hover:bg-white/60 transition {{ request()->is('admin/payments*') ? 'bg-white/70' : '' }}"
-                   href="{{ url('/admin/payments') }}">✅ Payment Approvals</a>
+                <a class="block px-3 py-2 rounded-2xl hover:bg-white/60 transition {{ request()->routeIs('admin.payments.*') ? 'bg-white/70' : '' }}"
+                   href="{{ route('admin.payments.index') }}">✅ Payment Approvals</a>
 
-                <a class="block px-3 py-2 rounded-2xl hover:bg-white/60 transition {{ request()->is('admin/reports*') ? 'bg-white/70' : '' }}"
-                   href="{{ url('/admin/reports') }}">📊 Reports</a>
+                <a class="block px-3 py-2 rounded-2xl hover:bg-white/60 transition {{ request()->routeIs('admin.reports') ? 'bg-white/70' : '' }}"
+                   href="{{ route('admin.reports') }}">📊 Reports</a>
 
-                <a class="block px-3 py-2 rounded-2xl hover:bg-white/60 transition"
-                   href="{{ url('/tasks') }}">📝 Go to Tasks</a>
+                {{-- ✅ NEW: Feedback approvals --}}
+                <a class="block px-3 py-2 rounded-2xl hover:bg-white/60 transition {{ request()->routeIs('admin.feedback.*') ? 'bg-white/70' : '' }}"
+                   href="{{ route('admin.feedback.index') }}">⭐ Feedback Approvals</a>
+
+                {{-- ✅ NEW: User Control --}}
+                <a class="block px-3 py-2 rounded-2xl hover:bg-white/60 transition {{ request()->routeIs('admin.users.*') ? 'bg-white/70' : '' }}"
+                   href="{{ route('admin.users.index') }}">👤 User Control</a>
+
+                {{-- ❌ Removed: Go to Tasks (admins should not use student pages) --}}
             </nav>
 
             <div class="divider my-4"></div>
@@ -135,11 +143,13 @@
             </div>
 
             <div class="flex items-center gap-2 text-sm">
-                <a href="{{ url('/') }}" class="px-4 py-2 rounded-2xl bg-white/70 border border-white/60 hover:bg-white transition">
+                <a href="{{ route('home') }}" class="px-4 py-2 rounded-2xl bg-white/70 border border-white/60 hover:bg-white transition">
                     🌐 Website
                 </a>
-                <a href="{{ url('/tasks') }}" class="px-4 py-2 rounded-2xl bg-slate-900 text-white font-semibold hover:opacity-95 transition">
-                    📝 Tasks
+
+                {{-- ❌ Removed Tasks button for admins --}}
+                <a href="{{ route('admin.dashboard') }}" class="px-4 py-2 rounded-2xl bg-slate-900 text-white font-semibold hover:opacity-95 transition">
+                    🛡️ Admin Panel
                 </a>
             </div>
         </header>
@@ -149,11 +159,21 @@
             <div class="font-bold mb-2">Menu ✨</div>
             <div class="grid gap-2 text-sm">
                 <a class="px-3 py-2 rounded-2xl bg-white/70 border border-white/60"
-                   href="{{ url('/admin') }}">🏠 Admin Dashboard</a>
+                   href="{{ route('admin.dashboard') }}">🏠 Admin Dashboard</a>
+
                 <a class="px-3 py-2 rounded-2xl bg-white/70 border border-white/60"
-                   href="{{ url('/admin/payments') }}">✅ Payment Approvals</a>
+                   href="{{ route('admin.payments.index') }}">✅ Payment Approvals</a>
+
                 <a class="px-3 py-2 rounded-2xl bg-white/70 border border-white/60"
-                   href="{{ url('/admin/reports') }}">📊 Reports</a>
+                   href="{{ route('admin.reports') }}">📊 Reports</a>
+
+                {{-- ✅ NEW --}}
+                <a class="px-3 py-2 rounded-2xl bg-white/70 border border-white/60"
+                   href="{{ route('admin.feedback.index') }}">⭐ Feedback Approvals</a>
+
+                {{-- ✅ NEW --}}
+                <a class="px-3 py-2 rounded-2xl bg-white/70 border border-white/60"
+                   href="{{ route('admin.users.index') }}">👤 User Control</a>
             </div>
         </div>
 
