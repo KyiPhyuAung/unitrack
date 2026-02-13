@@ -105,7 +105,7 @@ This project was developed as a student portfolio system to practice:
 ## 🛠 Installation (Local Development)
 
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/KyiPhyuAung/unitrack>
 cd uni-task-tracker
 composer install
 npm install
