@@ -177,9 +177,9 @@
 
                 <!-- Logo -->
                 <a href="{{ route('home') }}" class="group flex items-center gap-3">
-                <div class="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm
-                            transition transform group-hover:scale-[1.03] group-hover:-rotate-1">
-                    <x-application-logo class="h-6 w-6 text-white" />
+                <div class="h-10 w-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center shadow-sm
+                            transition transform group-hover:scale-[1.03] group-hover:-rotate-1 overflow-hidden">
+                    <img src="{{ asset('images/unitrack-logo-icon.png') }}" alt="UniTrack Logo" class="h-8 w-8 object-contain">
                 </div>
 
                 <div class="leading-tight">

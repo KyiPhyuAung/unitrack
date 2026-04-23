@@ -7,8 +7,8 @@
 <meta content="" name="description"/>
 <meta content="" name="keywords"/>
 <!-- Favicons -->
-<link href="{{ asset('unitrack-site/assets/img/favicon.png') }}" rel="icon"/>
-<link href="{{ asset('unitrack-site/assets/img/apple-touch-icon.png') }}" rel="apple-touch-icon"/>
+<<link href="{{ asset('public/images/favicon.png') }}" rel="icon"/>
+<link href="{{ asset('public/images/favicon.png') }}" rel="apple-touch-icon"/>
 <!-- Fonts -->
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -49,7 +49,9 @@
 </div><!-- End Top Bar -->
 <div class="branding d-flex align-items-cente">
 <div class="container position-relative d-flex align-items-center justify-content-between">
-<a class="logo d-flex align-items-center" href="index.html">
+<a class="logo d-flex align-items-center gap-2" href="{{ url('/') }}">
+    <img src="{{ asset('images/unitrack-logo.png') }}" alt="UniTrack Logo" style="height:40px;">
+</a>
 <!-- Uncomment the line below if you also wish to use an image logo -->
 <!-- <img src="assets/img/logo.webp" alt=""> -->
 <h1 class="sitename">Unitrack</h1>
@@ -109,8 +111,8 @@
 <div class="row align-items-start">
 <div class="col-lg-5">
 <div class="brand-section">
-<a class="logo d-flex align-items-center mb-4" href="index.html">
-<span class="sitename">Unitrack</span>
+<a class="logo d-flex align-items-center gap-2" href="{{ url('/') }}">
+    <img src="{{ asset('public/images/unitrack-logo.png') }}" alt="UniTrack Logo" style="height:40px;">
 </a>
 <p class="brand-description">Crafting exceptional digital experiences through thoughtful design and
                 innovative solutions that elevate your brand presence.</p>

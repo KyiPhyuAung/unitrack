@@ -76,7 +76,9 @@
         <div class="glass rounded-3xl p-4 h-[calc(100vh-2rem)] sticky top-4 overflow-hidden">
             {{-- ✅ Admin logo should go to admin dashboard, NOT user dashboard --}}
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
-                <div class="h-11 w-11 rounded-2xl bg-slate-900 text-white flex items-center justify-center">✅</div>
+                <div class="h-11 w-11 rounded-2xl bg-white shadow-sm flex items-center justify-center overflow-hidden">
+                    <img src="{{ asset('images/unitrack-logo-icon.png') }}" alt="UniTrack Logo" class="h-9 w-9 object-contain">
+                </div>
                 <div class="leading-tight">
                     <div class="font-extrabold">{{ config('app.name','UniTrack') }}</div>
                     <div class="text-xs text-slate-500 -mt-0.5">Admin • Control Center 🧠</div>

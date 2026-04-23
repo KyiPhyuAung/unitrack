@@ -14,7 +14,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ $isAdmin ? route('admin.dashboard') : route('tasks.index') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <img src="{{ asset('images/unitrack-logo.png') }}" alt="UniTrack Logo" class="block h-10 w-auto">
                     </a>
                 </div>
 

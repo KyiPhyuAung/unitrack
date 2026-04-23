@@ -15,10 +15,17 @@ class UniversitySeeder extends Seeder
             'University of Mandalay',
             'Mandalay Technological University',
             'Dagon University',
+            'Government University', 
+            'Government College',
+            'Private College',
+            'Private University',
         ];
 
         foreach ($universities as $name) {
-            University::create(['name' => $name]);
+            University::firstOrCreate(
+                ['name' => $name],
+                ['is_active' => true]
+            );
         }
     }
 }
