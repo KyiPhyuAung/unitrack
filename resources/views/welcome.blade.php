@@ -560,36 +560,7 @@
     $approvedFeedbacks = collect($feedbacks ?? [])->filter(fn($f) => (bool)($f->is_public ?? false));
 @endphp
 
-@if($approvedFeedbacks->count())
-            <div class="mt-6 grid md:grid-cols-3 gap-4">
-                @foreach($approvedFeedbacks as $f)
-                <div class="glass rounded-3xl p-5">
-                    <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <div class="font-bold">{{ $f->display_name ?? 'User' }}</div>
-                        @if(!empty($f->role_tag))
-                          <div class="text-xs mt-1"><span class="pill text-xs">{{ $f->role_tag }}</span></div>
-                        @endif
-                        <div class="text-xs text-slate-500 mt-1">{{ $f->created_at->diffForHumans() }}</div>
-                    </div>
-                    <div class="text-2xl">{{ $f->emoji }}</div>
-                    </div>
-
-                    <div class="mt-3 text-slate-700 leading-relaxed">
-                    “{{ $f->message }}”
-                    </div>
-
-                    <div class="mt-3 text-sm">
-                    @for($i=1;$i<=5;$i++)
-                        <span class="{{ $i <= (int)$f->rating ? '' : 'opacity-25' }}">⭐</span>
-                    @endfor
-                    </div>
-                </div>
-                @endforeach
-            </div>
-
-            <div class="divider my-10"></div>
-            @endif
+        
             <div class="mt-8 glass rounded-3xl p-4 overflow-hidden">
                 <div class="marquee">
                     <div class="marquee-track">
