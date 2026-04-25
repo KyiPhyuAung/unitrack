@@ -172,14 +172,14 @@
     <!-- Navbar -->
     <header class="sticky top-3 z-50">
         <div class="max-w-6xl mx-auto px-4">
-            <nav class="glass rounded-2xl px-4 sm:px-6 py-3">
+            <nav class="glass rounded-2xl px-4 sm:px-6 py-3 backdrop-blur-xl bg-white/60 border border-white/70">
             <div class="flex items-center justify-between">
 
                 <!-- Logo -->
                 <a href="{{ route('home') }}" class="group flex items-center gap-3">
                 <div class="h-10 w-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center shadow-sm
                             transition transform group-hover:scale-[1.03] group-hover:-rotate-1 overflow-hidden">
-                    <img src="{{ asset('images/unitrack-logo-icon.png') }}" alt="UniTrack Logo" class="h-8 w-8 object-contain">
+                    <img src="{{ asset('images/unitrack-logo-icon.png') }}" class="h-8 w-8 object-contain drop-shadow-sm group-hover:drop-shadow-md transition" alt="UniTrack Logo" class="h-8 w-8 object-contain">
                 </div>
 
                 <div class="leading-tight">
@@ -282,7 +282,7 @@
                         ✅ Simple UI
                     </div>
 
-                    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+                    <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight bg-gradient-to-r from-slate-900 via-blue-600 to-purple-600 bg-clip-text text-transparent">
                         A beautiful way to manage
                         <span class="block">tasks, deadlines & priorities ✅</span>
                     </h1>
@@ -311,15 +311,15 @@
                     </div>
 
                     <div class="mt-7 grid sm:grid-cols-3 gap-3 text-sm">
-                        <div class="glass rounded-2xl p-4">
+                        <div class="glass rounded-2xl p-4 transition hover:-translate-y-1 hover:shadow-xl">
                             <div class="font-bold">⚡ Fast</div>
                             <div class="text-slate-600 mt-1">Create tasks in seconds</div>
                         </div>
-                        <div class="glass rounded-2xl p-4">
+                        <div class="glass rounded-2xl p-4 transition hover:-translate-y-1 hover:shadow-xl">
                             <div class="font-bold">🎯 Focus</div>
                             <div class="text-slate-600 mt-1">See today at a glance</div>
                         </div>
-                        <div class="glass rounded-2xl p-4">
+                        <div class="glass rounded-2xl p-4 transition hover:-translate-y-1 hover:shadow-xl">
                             <div class="font-bold">🔔 Reminders</div>
                             <div class="text-slate-600 mt-1">Email notifications on time</div>
                         </div>
@@ -328,7 +328,7 @@
 
                 <!-- Right -->
                 <div class="relative reveal">
-                    <div class="glass rounded-3xl p-5 sm:p-6">
+                    <div class="glass rounded-3xl p-6 transition hover:-translate-y-2 hover:shadow-2xl hover:scale-[1.02]">
                         <div class="flex items-center justify-between">
                             <div class="font-bold text-lg">Today’s Plan ✅</div>
                             <div class="text-xs pill">Live preview ✨</div>
@@ -501,7 +501,7 @@
                     <p class="text-slate-600 mt-2">Start free, upgrade anytime. Student-friendly and simple.</p>
                 </div>
                 @guest
-                    <a href="{{ route('register') }}" class="btn-glow ripple-btn px-5 py-3 rounded-2xl bg-slate-900 text-white font-semibold">
+                    <a href="{{ route('register') }}" class="btn-glow ripple-btn px-6 py-3 rounded-2xl bg-slate-900 text-white font-semibold transition hover:scale-[1.03] active:scale-[0.98]">
                         Start UniTrack ✨
                     </a>
                 @endguest
@@ -716,8 +716,11 @@
 
         // Scroll reveal
         const io = new IntersectionObserver((entries) => {
-            entries.forEach(e => {
-                if (e.isIntersecting) e.target.classList.add('show');
+            entries.forEach((e, i) => {
+                if (e.isIntersecting) {
+                    e.target.style.transitionDelay = (i * 0.05) + 's';
+                    e.target.classList.add('show');
+                }
             });
         }, { threshold: 0.12 });
 

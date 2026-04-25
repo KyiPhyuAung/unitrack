@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class TaskApiController extends Controller
 {
@@ -42,7 +43,11 @@ class TaskApiController extends Controller
             'notify_at' => ['nullable', 'date'],
         ]);
 
-        $data['user_id'] = $user->id;
+       $data['user_id'] = $user->id;
+
+            if (!empty($data['notify_at'])) {
+                $data['notify_at'] = Carbon::parse($data['notify_at'])->format('Y-m-d H:i:s');
+            }
 
         $task = Task::create($data);
 
@@ -64,6 +69,14 @@ class TaskApiController extends Controller
             'status' => ['sometimes', 'required', 'in:pending,ongoing,done'],
             'notify_at' => ['nullable', 'date'],
         ]);
+
+        if (array_key_exists('notify_at', $data)) {
+            $data['notify_at'] = !empty($data['notify_at'])
+                ? Carbon::parse($data['notify_at'])->format('Y-m-d H:i:s')
+                : null;
+
+            $data['reminded_at'] = null;
+        }
 
         $task->update($data);
 

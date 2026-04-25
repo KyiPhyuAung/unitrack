@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\PaymentRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentRequestController extends Controller
 {
     public function create()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         // If already premium, no need
         if (($user->role ?? 'standard') === 'premium') {

@@ -17,7 +17,10 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $request->user()->load('university'),
+            'universities' => \App\Models\University::where('is_active', true)
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 

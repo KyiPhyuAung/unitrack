@@ -31,7 +31,10 @@ class AdminReportController extends Controller
         $overdueCount = Task::where('status','!=','done')
             ->whereNotNull('task_date')
             ->where(function($q){
-                $q->whereRaw("TIMESTAMP(task_date, COALESCE(task_time,'23:59:59')) < ?", [now()]);
+                $q->whereRaw(
+                    "datetime(task_date || ' ' || COALESCE(task_time, '23:59:59')) < ?",
+                    [now()->format('Y-m-d H:i:s')]
+                );
             })
             ->count();
 

@@ -20,5 +20,9 @@ class Task extends Model
     'status',
     'notify_at',
     ];
+    protected $casts = [
+    'notify_at' => 'datetime',
+    'reminded_at' => 'datetime',
+];
 
 }

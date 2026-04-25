@@ -1,6 +1,6 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     @php
-        $user = Auth::user();
+        $user = Auth::user()?->loadMissing('university');
         $role = $user->role ?? 'standard';
         $isAdmin = $role === 'admin';
         $isPremium = $role === 'premium';
@@ -78,7 +78,15 @@
                             class="inline-flex items-center px-3 py-2 border border-transparent
                                    text-sm font-medium rounded-md text-gray-500 bg-white
                                    hover:text-gray-700 transition">
-                            <div>{{ $user->name }}</div>
+                            <div class="leading-tight text-left">
+                                <div>{{ $user->name }}</div>
+
+                                    @if(!$isAdmin && $user->university)
+                                        <div class="text-xs text-gray-400">
+                                            {{ $user->university->name }}
+                                        </div>
+                                    @endif
+                                </div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" viewBox="0 0 20 20">
@@ -169,6 +177,13 @@
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
                 <div class="font-medium text-base text-gray-800">{{ $user->name }}</div>
+
+                @if(!$isAdmin && $user->university)
+                    <div class="font-medium text-sm text-gray-500">
+                        🎓 {{ $user->university->name }}
+                    </div>
+                @endif
+
                 <div class="font-medium text-sm text-gray-500">{{ $user->email }}</div>
             </div>
 
