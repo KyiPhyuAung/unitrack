@@ -1,4 +1,5 @@
-<x-guest-layout>
+@extends('layouts.app-bootstrap')
+@section('content')
     <div class="row justify-content-center align-items-center g-4">
         <div class="col-12 col-lg-6">
             <div class="card border-0 shadow-sm animate__animated animate__fadeInUp">
@@ -157,4 +158,4 @@
             </div>
         </div>
     </div>
-</x-guest-layout>
+@endsection

@@ -17,7 +17,8 @@ class TaskApiController extends Controller
         return Task::where('user_id', $user->id)
             ->orderBy('task_date')
             ->orderBy('task_time')
-            ->get();
+            ->get()
+            ->map(fn ($task) => $this->formatTask($task));
     }
 
     public function store(Request $request)
@@ -25,9 +26,7 @@ class TaskApiController extends Controller
         $user = $request->user();
         abort_if(!$user, 401);
 
-        $role = $user->role ?? 'standard';
-
-        if ($role === 'standard' && \App\Models\Task::where('user_id', $user->id)->count() >= 2) {
+        if (($user->role ?? 'standard') === 'standard' && Task::where('user_id', $user->id)->count() >= 2) {
             return response()->json([
                 'message' => 'Task limit reached. Upgrade to Premium to add more tasks.'
             ], 403);
@@ -43,15 +42,15 @@ class TaskApiController extends Controller
             'notify_at' => ['nullable', 'date'],
         ]);
 
-       $data['user_id'] = $user->id;
+        $data['user_id'] = $user->id;
 
-            if (!empty($data['notify_at'])) {
-                $data['notify_at'] = Carbon::parse($data['notify_at'])->format('Y-m-d H:i:s');
-            }
+        if (!empty($data['notify_at'])) {
+            $data['notify_at'] = Carbon::parse($data['notify_at'])->format('Y-m-d H:i:s');
+        }
 
         $task = Task::create($data);
 
-        return response()->json($task, 201);
+        return response()->json($this->formatTask($task), 201);
     }
 
     public function update(Request $request, Task $task)
@@ -75,12 +74,14 @@ class TaskApiController extends Controller
                 ? Carbon::parse($data['notify_at'])->format('Y-m-d H:i:s')
                 : null;
 
+            // important: allow email + website notification again after update
             $data['reminded_at'] = null;
+            $data['notification_seen_at'] = null;
         }
 
         $task->update($data);
 
-        return response()->json($task);
+        return response()->json($this->formatTask($task->fresh()));
     }
 
     public function destroy(Request $request, Task $task)
@@ -92,5 +93,26 @@ class TaskApiController extends Controller
         $task->delete();
 
         return response()->json(['message' => 'Deleted']);
+    }
+
+    private function formatTask(Task $task): array
+    {
+        return [
+            'id' => $task->id,
+            'user_id' => $task->user_id,
+            'title' => $task->title,
+            'description' => $task->description,
+            'task_date' => $task->task_date,
+            'task_time' => $task->task_time ? substr($task->task_time, 0, 5) : null,
+            'priority_color' => $task->priority_color,
+            'status' => $task->status,
+            'notify_at' => $task->notify_at
+                ? Carbon::parse($task->notify_at)->format('Y-m-d H:i:s')
+                : null,
+            'reminded_at' => $task->reminded_at,
+            'notification_seen_at' => $task->notification_seen_at,
+            'created_at' => $task->created_at,
+            'updated_at' => $task->updated_at,
+        ];
     }
 }

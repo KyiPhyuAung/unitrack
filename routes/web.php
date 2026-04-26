@@ -44,9 +44,7 @@ Route::view('/privacy', 'site.privacy')->name('site.privacy');
 /*
 |--------------------------------------------------------------------------
 | Authenticated - Student Area ONLY
-| (Admins should NOT enter these)
 |--------------------------------------------------------------------------
-| Requires: 'not_admin' middleware alias (Laravel 11 => bootstrap/app.php)
 */
 
 Route::middleware(['auth', 'not_admin'])->group(function () {
@@ -55,20 +53,16 @@ Route::middleware(['auth', 'not_admin'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
-    // Tasks (web UI)
     Route::get('/tasks', function () {
         return view('tasks.index');
     })->name('tasks.index');
 
-    // Upgrade (user payment request)
     Route::get('/upgrade', [PaymentRequestController::class, 'create'])->name('payments.upgrade');
     Route::post('/upgrade', [PaymentRequestController::class, 'store'])->name('payments.store');
 
-    // Feedback (users only - admins shouldn't give feedback)
     Route::get('/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
     Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 
-    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -76,7 +70,7 @@ Route::middleware(['auth', 'not_admin'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Admin Forgot Password (OTP flow) - Guest only
+| Admin Forgot Password - Guest only
 |--------------------------------------------------------------------------
 */
 
@@ -96,7 +90,7 @@ Route::middleware('guest')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Admin Area (auth + admin)
+| Admin Area
 |--------------------------------------------------------------------------
 */
 
@@ -127,18 +121,22 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 */
 
 Route::middleware('auth')->prefix('api')->group(function () {
+
     Route::get('/tasks', [TaskApiController::class, 'index']);
     Route::post('/tasks', [TaskApiController::class, 'store']);
     Route::patch('/tasks/{task}', [TaskApiController::class, 'update']);
     Route::delete('/tasks/{task}', [TaskApiController::class, 'destroy']);
 
     Route::get('/notifications', [NotificationApiController::class, 'index']);
+    Route::post('/notifications/clear', [NotificationApiController::class, 'clear']);
+    Route::post('/notifications/clear-all', [NotificationApiController::class, 'clearAll']);
+
     Route::get('/tasks/preview', [NotificationApiController::class, 'preview']);
 });
 
 /*
 |--------------------------------------------------------------------------
-| Auth routes (Breeze / Jetstream)
+| Auth routes
 |--------------------------------------------------------------------------
 */
 

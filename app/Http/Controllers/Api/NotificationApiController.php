@@ -13,54 +13,110 @@ class NotificationApiController extends Controller
     {
         $user = $request->user();
         $now = now();
+        $upcomingWindow = now()->addMinutes(5);
 
-        // Expired = past due (date+time) and NOT done
         $expired = Task::where('user_id', $user->id)
             ->where('status', '!=', 'done')
+            ->whereNull('notification_seen_at')
             ->whereNotNull('task_date')
             ->get()
-            ->filter(function ($t) use ($now) {
-                $dt = $this->taskDueCarbon($t);
-                return $dt && $dt->lte($now);
+            ->filter(function ($task) use ($now) {
+                $dueAt = $this->taskDueCarbon($task);
+                return $dueAt && $dueAt->lte($now);
             })
-            ->take(5)
+            ->take(10)
             ->values();
 
-        // Due reminders = notify_at reached AND not reminded yet AND not done
-        $dueReminders = Task::where('user_id', $user->id)
+        $reminders = Task::where('user_id', $user->id)
             ->where('status', '!=', 'done')
             ->whereNotNull('notify_at')
-            ->whereNull('reminded_at')
-            ->where('notify_at', '<=', $now)
+            ->whereNull('notification_seen_at')
+            ->where('notify_at', '<=', $upcomingWindow)
             ->orderBy('notify_at')
-            ->limit(5)
+            ->limit(10)
             ->get();
 
         $items = [];
 
-        foreach ($expired as $t) {
+        foreach ($expired as $task) {
             $items[] = [
+                'id' => $task->id,
                 'icon' => '⏳',
-                'title' => $t->title,
-                'message' => 'This task is expired. Please update status or reschedule.',
+                'title' => $task->title,
+                'message' => 'This task is overdue. Please update the status or reschedule it.',
                 'badge' => 'Expired',
                 'badgeClass' => 'bg-red-100 text-red-700',
+                'created_at' => optional($task->updated_at)->diffForHumans(),
             ];
         }
 
-        foreach ($dueReminders as $t) {
+        foreach ($reminders as $task) {
+            $notifyAt = Carbon::parse($task->notify_at);
+            $isUpcoming = $notifyAt->gt($now);
+
             $items[] = [
-                'icon' => '🔔',
-                'title' => $t->title,
-                'message' => 'Notify time reached. Check the task now.',
-                'badge' => 'Due',
-                'badgeClass' => 'bg-blue-100 text-blue-700',
+                'id' => $task->id,
+                'icon' => $isUpcoming ? '⏰' : '🔔',
+                'title' => $task->title,
+                'message' => $isUpcoming
+                    ? 'This task reminder is coming soon. Be ready.'
+                    : 'Reminder time has arrived. Please check this task.',
+                'badge' => $isUpcoming ? 'Upcoming' : 'Due',
+                'badgeClass' => $isUpcoming
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : 'bg-blue-100 text-blue-700',
+                'created_at' => optional($task->notify_at)->diffForHumans(),
             ];
         }
 
         return response()->json([
             'count' => count($items),
-            'items' => $items,
+            'items' => collect($items)->sortBy('id')->values(),
+        ]);
+    }
+
+    public function clear(Request $request)
+    {
+        $data = $request->validate([
+            'id' => ['required', 'integer'],
+        ]);
+
+        Task::where('id', $data['id'])
+            ->where('user_id', $request->user()->id)
+            ->update([
+                'notification_seen_at' => now(),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'cleared_id' => $data['id'],
+        ]);
+    }
+
+    public function clearAll(Request $request)
+    {
+        $user = $request->user();
+        $now = now();
+        $upcomingWindow = now()->addMinutes(5);
+
+        Task::where('user_id', $user->id)
+            ->where('status', '!=', 'done')
+            ->whereNull('notification_seen_at')
+            ->where(function ($query) use ($now, $upcomingWindow) {
+                $query->where(function ($q) use ($upcomingWindow) {
+                    $q->whereNotNull('notify_at')
+                      ->where('notify_at', '<=', $upcomingWindow);
+                })
+                ->orWhere(function ($q) use ($now) {
+                    $q->whereNotNull('task_date');
+                });
+            })
+            ->update([
+                'notification_seen_at' => now(),
+            ]);
+
+        return response()->json([
+            'success' => true,
         ]);
     }
 
@@ -69,28 +125,31 @@ class NotificationApiController extends Controller
         $user = $request->user();
 
         $tasks = Task::where('user_id', $user->id)
-            ->orderByRaw("FIELD(status,'pending','ongoing','done')")
+            ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'ongoing' THEN 2 WHEN 'done' THEN 3 ELSE 4 END")
             ->orderByDesc('created_at')
             ->limit(4)
             ->get()
-            ->map(function ($t) {
-                $badge = match ($t->status) {
+            ->map(function ($task) {
+                $badge = match ($task->status) {
                     'done' => 'Done ✅',
                     'ongoing' => 'Ongoing ⏳',
                     default => 'Pending 🕒',
                 };
 
-                $badgeClass = match ($t->status) {
+                $badgeClass = match ($task->status) {
                     'done' => 'bg-emerald-100 text-emerald-700',
                     'ongoing' => 'bg-purple-100 text-purple-700',
                     default => 'bg-slate-100 text-slate-700',
                 };
 
-                $meta = trim(($t->task_date ?? '') . ' ' . ($t->task_time ?? ''));
-                if ($meta === '') $meta = 'No schedule set';
+                $meta = trim(($task->task_date ?? '') . ' ' . ($task->task_time ?? ''));
+
+                if ($meta === '') {
+                    $meta = 'No schedule set';
+                }
 
                 return [
-                    'title' => $t->title,
+                    'title' => $task->title,
                     'meta' => $meta,
                     'badge' => $badge,
                     'badgeClass' => $badgeClass,
@@ -102,8 +161,12 @@ class NotificationApiController extends Controller
 
     private function taskDueCarbon($task): ?Carbon
     {
-        if (!$task->task_date) return null;
+        if (!$task->task_date) {
+            return null;
+        }
+
         $time = $task->task_time ?: '23:59:59';
+
         return Carbon::parse($task->task_date . ' ' . $time);
     }
 }
