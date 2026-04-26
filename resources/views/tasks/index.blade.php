@@ -40,6 +40,20 @@
     .muted-mini { font-size: .88rem; color: #6c757d; }
     .soft-input { border-radius: 14px; }
 
+    .filter-panel {
+        background: rgba(255,255,255,.85);
+        border: 1px solid rgba(0,0,0,.06);
+        border-radius: 18px;
+        padding: 14px;
+        box-shadow: 0 12px 30px rgba(0,0,0,.06);
+    }
+
+    .filter-btn.active {
+        background-color: #111827 !important;
+        color: white !important;
+        border-color: #111827 !important;
+    }
+
     .notification-panel {
         position: absolute;
         right: 0;
@@ -92,9 +106,7 @@
     </div>
 
     <div class="d-flex align-items-center gap-2 position-relative">
-        <button id="notificationButton"
-            type="button"
-            class="btn btn-light position-relative rounded-3 shadow-sm">
+        <button id="notificationButton" type="button" class="btn btn-light position-relative rounded-3 shadow-sm">
             🔔
             <span id="notificationBadge"
                 class="d-none position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -125,6 +137,36 @@
     </div>
 </div>
 
+<div class="filter-panel mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <div class="fw-bold mb-2">Status Filter</div>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-dark filter-btn active" data-filter-group="status" onclick="setStatusFilter('all', this)">All</button>
+                <button class="btn btn-sm btn-outline-dark filter-btn" data-filter-group="status" onclick="setStatusFilter('pending', this)">Pending</button>
+                <button class="btn btn-sm btn-outline-dark filter-btn" data-filter-group="status" onclick="setStatusFilter('ongoing', this)">Ongoing</button>
+                <button class="btn btn-sm btn-outline-dark filter-btn" data-filter-group="status" onclick="setStatusFilter('done', this)">Done</button>
+            </div>
+        </div>
+
+        <div>
+            <div class="fw-bold mb-2">Smart View</div>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-dark filter-btn active" data-filter-group="date" onclick="setDateFilter('all', this)">All Dates</button>
+                <button class="btn btn-sm btn-outline-dark filter-btn" data-filter-group="date" onclick="setDateFilter('today', this)">Today</button>
+                <button class="btn btn-sm btn-outline-dark filter-btn" data-filter-group="date" onclick="setDateFilter('upcoming', this)">Upcoming</button>
+            </div>
+        </div>
+
+        <div>
+            <div class="fw-bold mb-2">Priority Sort</div>
+            <button id="prioritySortBtn" class="btn btn-sm btn-outline-danger rounded-pill" onclick="togglePrioritySort()">
+                🔴 Priority First: Off
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="notificationToastStack" class="notification-toast-stack"></div>
 
 <div id="alertBox" class="mb-3"></div>
@@ -132,8 +174,8 @@
 <div id="emptyState" class="card card-soft d-none">
     <div class="card-body text-center py-5">
         <div class="display-6">🗓️</div>
-        <h5 class="mt-2 mb-1">No tasks yet</h5>
-        <div class="text-muted">Create your first task and stay on track ✨</div>
+        <h5 class="mt-2 mb-1">No tasks found</h5>
+        <div class="text-muted">Try changing the filters or create a new task ✨</div>
         <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#createModal">
             Create Task 🚀
         </button>
@@ -189,7 +231,12 @@
 
 <script>
 const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
 let shownNotifications = new Set();
+let allTasks = [];
+let currentStatusFilter = 'all';
+let currentDateFilter = 'all';
+let prioritySortEnabled = false;
 
 function showAlert(type, message) {
     document.getElementById('alertBox').innerHTML = `
@@ -210,17 +257,44 @@ function escapeHtml(str) {
 }
 
 function priorityEmoji(color) {
-    return { red:'🔴', green:'🟢', blue:'🔵', yellow:'🟡', purple:'🟣' }[color] ?? '🔵';
+    return { red:'🔴', yellow:'🟡', purple:'🟣', blue:'🔵', green:'🟢' }[color] ?? '🔵';
+}
+
+function priorityRank(color) {
+    return { red: 1, yellow: 2, purple: 3, blue: 4, green: 5 }[color] ?? 99;
 }
 
 function toLocalDueDate(task) {
+    if (!task.task_date) return null;
     const time = task.task_time ? String(task.task_time).slice(0, 5) : '23:59';
     return new Date(`${task.task_date}T${time}`);
 }
 
+function isToday(task) {
+    if (!task.task_date) return false;
+
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+
+    return task.task_date === `${y}-${m}-${d}`;
+}
+
+function isUpcoming(task) {
+    if (!task.task_date) return false;
+
+    const due = toLocalDueDate(task);
+    if (!due) return false;
+
+    const now = new Date();
+    return due > now && !isToday(task);
+}
+
 function isExpired(task) {
     if (task.status === 'done') return false;
-    return toLocalDueDate(task) < new Date();
+    const due = toLocalDueDate(task);
+    return due ? due < new Date() : false;
 }
 
 function expiredBadge(task) {
@@ -234,7 +308,7 @@ function statusBadge(status) {
 }
 
 function priorityBarClass(color) {
-    return { red:'p-red', green:'p-green', blue:'p-blue', yellow:'p-yellow', purple:'p-purple' }[color] ?? 'p-blue';
+    return { red:'p-red', yellow:'p-yellow', purple:'p-purple', blue:'p-blue', green:'p-green' }[color] ?? 'p-blue';
 }
 
 async function api(url, method='GET', payload=null) {
@@ -254,16 +328,82 @@ async function api(url, method='GET', payload=null) {
 
 function formatDateTimeForServer(raw) {
     if (!raw) return null;
-
     return raw.replace('T', ' ') + ':00';
 }
 
 function formatDateTimeForInput(value) {
     if (!value) return '';
+    return String(value).replace(' ', 'T').slice(0, 16);
+}
 
-    return String(value)
-        .replace(' ', 'T')
-        .slice(0, 16);
+function setActiveFilterButton(group, btn) {
+    document.querySelectorAll(`[data-filter-group="${group}"]`).forEach(b => {
+        b.classList.remove('active', 'btn-dark');
+        b.classList.add('btn-outline-dark');
+    });
+
+    btn.classList.add('active', 'btn-dark');
+    btn.classList.remove('btn-outline-dark');
+}
+
+function setStatusFilter(status, btn) {
+    currentStatusFilter = status;
+    setActiveFilterButton('status', btn);
+    applyFilters();
+}
+
+function setDateFilter(filter, btn) {
+    currentDateFilter = filter;
+    setActiveFilterButton('date', btn);
+    applyFilters();
+}
+
+function togglePrioritySort() {
+    prioritySortEnabled = !prioritySortEnabled;
+
+    const btn = document.getElementById('prioritySortBtn');
+
+    if (prioritySortEnabled) {
+        btn.classList.remove('btn-outline-danger');
+        btn.classList.add('btn-danger');
+        btn.innerText = '🔴 Priority First: On';
+    } else {
+        btn.classList.remove('btn-danger');
+        btn.classList.add('btn-outline-danger');
+        btn.innerText = '🔴 Priority First: Off';
+    }
+
+    applyFilters();
+}
+
+function applyFilters() {
+    let filtered = [...allTasks];
+
+    if (currentStatusFilter !== 'all') {
+        filtered = filtered.filter(task => task.status === currentStatusFilter);
+    }
+
+    if (currentDateFilter === 'today') {
+        filtered = filtered.filter(task => isToday(task));
+    }
+
+    if (currentDateFilter === 'upcoming') {
+        filtered = filtered.filter(task => isUpcoming(task));
+    }
+
+    if (prioritySortEnabled) {
+        filtered.sort((a, b) => {
+            const p = priorityRank(a.priority_color) - priorityRank(b.priority_color);
+            if (p !== 0) return p;
+
+            const da = toLocalDueDate(a)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+            const db = toLocalDueDate(b)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+
+            return da - db;
+        });
+    }
+
+    renderCards(filtered);
 }
 
 function renderCards(tasks) {
@@ -301,6 +441,8 @@ function renderCards(tasks) {
                     <span class="badge text-bg-light pill"><i class="bi bi-clock me-1"></i>${t.task_time ?? '—'}</span>
                     <span class="badge text-bg-light pill">Priority: ${escapeHtml(t.priority_color)}</span>
                     ${t.notify_at ? `<span class="badge text-bg-warning pill"><i class="bi bi-bell me-1"></i>Notify</span>` : ''}
+                    ${isToday(t) ? `<span class="badge text-bg-primary pill">Today</span>` : ''}
+                    ${isUpcoming(t) ? `<span class="badge text-bg-info pill">Upcoming</span>` : ''}
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center gap-2 mt-3">
@@ -327,7 +469,9 @@ function renderCards(tasks) {
 async function loadTasks() {
     const res = await api('/api/tasks');
     const tasks = await res.json();
-    renderCards(tasks);
+
+    allTasks = Array.isArray(tasks) ? tasks : [];
+    applyFilters();
 }
 
 function buildPayload(prefix) {
@@ -367,13 +511,11 @@ async function createTask(payload) {
     showAlert('success', 'Task created ✅');
     return true;
 }
+
 function makeTaskNotificationNewAgain(id) {
-    // Remove from localStorage read list used by app.blade.php
     let read = JSON.parse(localStorage.getItem('unitrack_read_notifications') || '[]');
     read = read.filter(readId => Number(readId) !== Number(id));
     localStorage.setItem('unitrack_read_notifications', JSON.stringify(read));
-
-    // Remove from this page's shown popup memory
     shownNotifications.delete(Number(id));
 }
 
@@ -402,12 +544,12 @@ async function updateStatus(id, status) {
 
     if (!res.ok) {
         showAlert('danger', 'Failed to update status.');
-        loadTasks();
+        await loadTasks();
         return;
     }
 
-    loadTasks();
-    loadNotifications();
+    await loadTasks();
+    await loadNotifications();
 }
 
 async function deleteTask(id) {
@@ -415,8 +557,8 @@ async function deleteTask(id) {
 
     if (res.ok) {
         showAlert('success', 'Task deleted 🗑️');
-        loadTasks();
-        loadNotifications();
+        await loadTasks();
+        await loadNotifications();
     } else {
         showAlert('danger', 'Failed to delete task.');
     }
@@ -537,13 +679,13 @@ function showNotificationToast(item) {
 async function clearNotification(id) {
     await api('/api/notifications/clear', 'POST', { id });
     shownNotifications.delete(id);
-    loadNotifications();
+    await loadNotifications();
 }
 
 async function clearAllNotifications() {
     await api('/api/notifications/clear-all', 'POST');
     shownNotifications.clear();
-    loadNotifications();
+    await loadNotifications();
 }
 
 document.getElementById('notificationButton')?.addEventListener('click', () => {
@@ -569,8 +711,8 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
     if (ok) {
         e.target.reset();
         bootstrap.Modal.getOrCreateInstance(document.getElementById('createModal')).hide();
-        loadTasks();
-        loadNotifications();
+        await loadTasks();
+        await loadNotifications();
     }
 });
 
@@ -582,9 +724,7 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
 
     if (ok) {
         makeTaskNotificationNewAgain(id);
-
         bootstrap.Modal.getOrCreateInstance(document.getElementById('editModal')).hide();
-
         await loadTasks();
         await loadNotifications();
     }
