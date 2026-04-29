@@ -12,10 +12,12 @@ Built as an academic + portfolio project using Laravel and Tailwind CSS.
 ### 👨‍🎓 Student Side
 - User authentication (Register / Login)
 - Task creation with status (Pending / Ongoing / Done)
-- Priority colors (Red / Green / Blue)
+- Priority colors (🔴 Red / 🟢 Green / 🔵 Blue)
+- 📌 **Sorted Task Wall Cards** (All / Pending / Ongoing / Done)
+- Smart views (Today / Upcoming)
 - Email reminder notifications
 - Dashboard overview
-- Feedback system with star rating + emoji
+- Feedback system with rating + emoji
 - Premium upgrade via receipt upload
 
 ### 🛡 Admin Panel
@@ -30,7 +32,7 @@ Built as an academic + portfolio project using Laravel and Tailwind CSS.
 
 ### ⚙ System Features
 - Role-based access control
-- Internal REST API for tasks & notifications
+- Internal REST API (Tasks & Notifications)
 - Responsive glass UI design
 - Real-time UI updates
 - Secure authentication middleware
@@ -42,27 +44,15 @@ Built as an academic + portfolio project using Laravel and Tailwind CSS.
 ### Backend
 - Laravel (PHP Framework)
 - PHP
-- MySQL / MariaDB
+- SQLite (Database)
 - Laravel REST APIs
-- Middleware (Admin / User role protection)
+- Middleware (Role-based protection)
 - Eloquent ORM
 
 ### Frontend
 - Blade Templates
 - Tailwind CSS
 - Vanilla JavaScript
-
-### Features Implemented
-- Authentication system
-- Role-based authorization (Admin / Premium / Standard)
-- Task management
-- Internal APIs
-- Email reminders
-- Feedback system with admin approval
-- Admin dashboard
-- User control center
-- Payment request & approval workflow
-- Responsive UI
 
 ### Development Tools
 - Visual Studio Code
@@ -73,11 +63,25 @@ Built as an academic + portfolio project using Laravel and Tailwind CSS.
 
 ---
 
+## 🧪 Automated Testing
+
+UniTrack includes **fully implemented automated testing** using Laravel PHPUnit.
+
+Test coverage includes:
+- Task Management System ✅
+- Notification System ✅
+- Payment & Admin Approval Workflow ✅
+- Profile & User System ✅
+- Authentication System (Laravel Breeze, modified) ✅
+
+These tests simulate real user actions and ensure system reliability, correctness, and stability.
+
+---
+
 ## 📌 Project Type
 
-Full-Stack Web Application (Laravel + Tailwind)
-
-Hybrid architecture: Blade frontend + Laravel internal APIs.
+Full-Stack Web Application (Laravel + Tailwind)  
+Hybrid architecture: Blade frontend + Laravel internal APIs
 
 ---
 
@@ -90,27 +94,27 @@ Hybrid architecture: Blade frontend + Laravel internal APIs.
 
 ## 💡 Project Purpose
 
-This project was developed as a student portfolio system to practice:
+This project was developed to practice:
 
-- Full-stack Laravel development
-- API design
-- Authentication & authorization
-- Admin dashboards
-- UI/UX design
-- Database relationships
-- Real-world SaaS architecture concepts
+- Full-stack Laravel development  
+- API design  
+- Authentication & authorization  
+- Admin dashboard systems  
+- UI/UX design  
+- Database relationships  
+- Real-world SaaS concepts  
 
 ---
 
 ## 🛠 Installation (Local Development)
 
 ```bash
-git clone <https://github.com/KyiPhyuAung/unitrack>
+git clone https://github.com/KyiPhyuAung/unitrack
 cd uni-task-tracker
+
 composer install
 npm install
+
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
-npm run dev
-php artisan serve
